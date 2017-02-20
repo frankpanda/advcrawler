@@ -1,5 +1,12 @@
 #!/usr/bin/env python
 # _*_ coding:utf-8 _*_
-
-__author__ = 'frank_xiong'
+"""
+    version: 1.0
+    author:  frank xiong
+    mail:    panda198727@hotmail.com
+    description: ***
+    
+    :copyright: (c) ***
+    :license: ***
+"""
 
