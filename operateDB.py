@@ -14,6 +14,7 @@ import sqlite3
 import os
 
 import logging
+from logging.handlers import RotatingFileHandler
 
 
 class DBHandler(object):
@@ -23,7 +24,7 @@ class DBHandler(object):
 
     def __init__(self, db_path=u"E:/crawler_db/spider.db"):
         self.db_path = db_path.decode("utf-8")
-        self.check_dir(self.check_dir())
+        self.check_dir()
         self.conn = sqlite3.connect(db_path)
         self.cursor = self.conn.cursor()
 
@@ -33,8 +34,8 @@ class DBHandler(object):
         :param path:
         :return:
         """
-        if not os.path.exists(self.db_path):
-            path_dir = self.get_dir()
+        path_dir = self.get_dir()
+        if not os.path.exists(path_dir):
             logging.info(u"目录不存在，正在创建目录...")
             os.mkdir(path_dir)
             logging.info(u"目录创建完成...")
@@ -45,34 +46,46 @@ class DBHandler(object):
         :return:
         """
         dir_list = self.db_path.split("/")
+        logging.debug("dir_list:" + str(dir_list))
         # 删除文件名
         dir_list.pop()
-        db_dir = "".join(dir_list)
+        db_dir = "/".join(dir_list)
         logging.info(u"数据库文件的存放路径:" + db_dir)
 
         return db_dir
 
-    def create_table(self, sql):
+    def create_table(self):
         """
         创建表，如果表存则忽略
         :param sql:
         :return:
         """
-        sql_str = r"CREATE TABLE IF NOT EXISTS movies_info(" \
-                  r"id INTEGER PRIMARY KEY AUTOINCREMENT, " \
-                  r"movie_name VARCHAR(100), " \
-                  r"movie_score FLOAT)"
+        try:
+            sql_str = r"CREATE TABLE IF NOT EXISTS movies_info(" \
+                      r"id INTEGER PRIMARY KEY AUTOINCREMENT, " \
+                      r"movie_name VARCHAR(100), " \
+                      r"movie_score FLOAT," \
+                      r"create_date datetime)"
 
-        self.cursor.execute(sql_str)
+            self.cursor.execute(sql_str)
+            logging.info(u"成功创建表...")
+        except sqlite3.Error as e:
+            logging.info(u"创建表失败...")
+            logging.debug(e)
         self.commit_data()
+        logging.info(u"表创建完成...")
 
     def insert_data(self, *data):
         """
         插入数据
         :return:
         """
-        sql_str = r"INSERT INTO movies_info(movie_name,movie_score) VALUES (?,?)"
-        self.cursor.execute(sql_str, data)
+        try:
+            sql_str = r"INSERT INTO movies_info(movie_name,movie_score,create_date) VALUES (?,?,datetime('NOW'))"
+            self.cursor.execute(sql_str, data)
+        except sqlite3.Error as e:
+            logging.info(u"插入数据失败...")
+            logging.debug(e)
         self.commit_data()
 
     def commit_data(self):
@@ -96,6 +109,36 @@ class DBHandler(object):
         self.conn.close()
 
 
+def set_logger():
+    log_file = u"log/sendsms.log"
+    try:
+        if not os.path.exists('log'):
+            os.makedirs('log')
+    except Exception, e:
+        logging.info(u"创建日志文件夹log失败:")
+        logging.info(e)
+
+    max_log_file_size = 1 * 1024 * 1024
+    backup_count = 3
+    log_format = "%(asctime)s %(levelname)-8s[%(filename)s:%(lineno)d(%(funcName)s)] %(message)s"
+    log_level = logging.DEBUG
+
+    handler = RotatingFileHandler(log_file,
+                                  mode='a',
+                                  maxBytes=max_log_file_size,
+                                  backupCount=backup_count
+                                  )
+    formatter = logging.Formatter(log_format)
+    handler.setFormatter(formatter)
+    log = logging.getLogger()
+    log.setLevel(log_level)
+    log.addHandler(handler)
+
+    return
+
+
 if __name__ == "__main__":
+    set_logger()
     database = DBHandler()
     database.create_table()
+    database.insert_data(u"天下无贼", 8.5)
