@@ -23,20 +23,20 @@ class DBHandler(object):
 
     def __init__(self, db_path=u"E:/crawler_db/spider.db"):
         self.db_path = db_path.decode("utf-8")
-        self.check_dir(DBHandler.check_dir(db_path))
+        self.check_dir(self.check_dir())
         self.conn = sqlite3.connect(db_path)
         self.cursor = self.conn.cursor()
 
-    @staticmethod
-    def check_dir(path):
+    def check_dir(self):
         """
         检查文件夹是否存在，如果不存在就创建目录
         :param path:
         :return:
         """
-        if not os.path.exists(path):
+        if not os.path.exists(self.db_path):
+            path_dir = self.get_dir()
             logging.info(u"目录不存在，正在创建目录...")
-            os.mkdir(path)
+            os.mkdir(path_dir)
             logging.info(u"目录创建完成...")
 
     def get_dir(self):
@@ -87,10 +87,15 @@ class DBHandler(object):
             logging.info(u"数据库操作失败，操作已回滚...")
             logging.debug(e)
 
-    def get_close(self):
+    def close_db(self):
         """
         关闭游标和连接
         :return:
         """
         self.cursor.close()
         self.conn.close()
+
+
+if __name__ == "__main__":
+    database = DBHandler()
+    database.create_table()
