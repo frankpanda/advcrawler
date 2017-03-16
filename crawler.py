@@ -14,3 +14,8 @@ import requests
 from lxml import etree
 
 
+def get_html_data():
+    """
+    请求页面，并返回html数据
+    :return:
+    """

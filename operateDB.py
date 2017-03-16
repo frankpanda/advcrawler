@@ -5,7 +5,6 @@
     author:  frank xiong
     mail:    panda198727@hotmail.com
     description: ***
-    
     :copyright: (c) ***
     :license: ***
 """
@@ -110,7 +109,7 @@ class DBHandler(object):
 
 
 def set_logger():
-    log_file = u"log/sendsms.log"
+    log_file = u"log/spider.log"
     try:
         if not os.path.exists('log'):
             os.makedirs('log')
